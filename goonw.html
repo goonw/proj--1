@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GRATIS KUOTA IM3</title></title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:0;padding:20px;background:#f6f8fa;color:#0b1220}
+    .card{max-width:720px;margin:28px auto;padding:20px;border-radius:12px;background:white;box-shadow:0 6px 22px rgba(11,18,32,0.06)}
+    h1{font-size:20px;margin:0 0 6px}
+    p{margin:6px 0 14px;color:#374151}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    input,button,textarea{font-size:15px;padding:10px;border-radius:8px;border:1px solid #e5e7eb}
+    button{cursor:pointer}
+    .ip{font-weight:700;font-size:22px}
+    .meta{font-size:13px;color:#6b7280}
+    .small{font-size:13px;color:#6b7280}
+    .success{color:green}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>KUOTA GRATIS UNTUK ANDA</h1>
+    <p>Buka halaman ini dari handphone Anda</p>
+
+    <div>
+      <div class="small">IP Publik:</div>
+      <div id="ip" class="ip">—</div>
+      <div id="meta" class="meta"></div>
+    </div>
+
+    <div style="margin-top:12px" class="row">
+      <button id="refresh">Refresh IP</button>
+      <button id="copy">Salin IP</button>
+      <button id="screenshot" onclick="alert('Gunakan fitur tangkapan layar perangkat Anda untuk menyimpan bukti.')">Ambil Screenshot</button>
+    </div>
+
+    <hr style="margin:16px 0" />
+
+    <div>
+      <div class="small">Kirim otomatis IP ke webhook (opsional)</div>
+      <p class="small">Masukkan URL webhook (contoh: URL endpoint yang Anda kontrol). Jika kosong, data tidak akan dikirim.</p>
+      <input id="webhook" placeholder="https://example.com/webhook" style="width:100%" />
+      <div class="row" style="margin-top:8px">
+        <button id="send">Kirim ke webhook sekarang</button>
+        <button id="auto">Share</button>
+      </div>
+      <div id="status" class="small"></div>
+    </div>
+
+    <hr style="margin:16px 0" />
+
+    <div class="small">Info tambahan:</div>
+    <ul class="small">
+      <li>dont</li>
+      <li>say</li>
+      <li>it</li>
+    </ul>
+  </div>
+
+<script>
+const ipEl = document.getElementById('ip');
+const metaEl = document.getElementById('meta');
+const statusEl = document.getElementById('status');
+const webhookEl = document.getElementById('webhook');
+let lastIP = null;
+
+async function fetchIP(){
+  ipEl.textContent = 'memuat...';
+  metaEl.textContent = '';
+  try{
+    // Primary: ipify
+    let r = await fetch('https://api.ipify.org?format=json');
+    if(!r.ok) throw new Error('ipify gagal');
+    let j = await r.json();
+    const ip = j.ip;
+    ipEl.textContent = ip;
+    metaEl.textContent = navigator.userAgent + ' — ' + new Date().toLocaleString();
+
+    if(lastIP && lastIP !== ip){
+      notifyStatus('IP berubah: ' + lastIP + ' → ' + ip);
+      if(autoSend) sendToWebhook(ip, true);
+    }
+    lastIP = ip;
+    return ip;
+  }catch(err){
+    // Fallback
+    try{
+      let r2 = await fetch('https://ifconfig.co/json');
+      let j2 = await r2.json();
+      const ip = j2.ip || j2.address || 'unknown';
+      ipEl.textContent = ip;
+      metaEl.textContent = navigator.userAgent + ' — ' + new Date().toLocaleString();
+      lastIP = ip;
+      return ip;
+    }catch(e){
+      ipEl.textContent = 'gagal mengambil IP';
+      notifyStatus('Gagal mengambil IP: ' + e.message);
+      return null;
+    }
+  }
+}
+
+function notifyStatus(t){
+  statusEl.textContent = t;
+  setTimeout(()=>{ if(statusEl.textContent === t) statusEl.textContent = '' },6000);
+}
+
+document.getElementById('refresh').addEventListener('click', ()=> fetchIP());
+
+document.getElementById('copy').addEventListener('click', async ()=>{
+  const txt = ipEl.textContent;
+  try{
+    await navigator.clipboard.writeText(txt);
+    notifyStatus('IP disalin ke clipboard: ' + txt);
+  }catch(e){
+    notifyStatus('Tidak dapat menyalin: ' + e.message);
+  }
+});
+
+async function sendToWebhook(ip, auto=false){
+  const url = webhookEl.value.trim();
+  if(!url){ notifyStatus('Webhook kosong — tidak terkirim'); return; }
+  const payload = { ip, userAgent: navigator.userAgent, timestamp: new Date().toISOString(), auto };
+  try{
+    const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    if(r.ok){ notifyStatus('Terkirim ke webhook'); }
+    else{ notifyStatus('Webhook gagal: ' + r.status); }
+  }catch(e){ notifyStatus('Gagal kirim: ' + e.message); }
+}
+
+document.getElementById('send').addEventListener('click', async ()=>{
+  const ip = await fetchIP();
+  if(ip) sendToWebhook(ip, false);
+});
+
+let autoSend = false;
+document.getElementById('auto').addEventListener('click', ()=>{
+  autoSend = !autoSend;
+  document.getElementById('auto').textContent = autoSend ? 'Nonaktifkan kirim otomatis' : 'Aktifkan kirim otomatis (saat IP berubah)';
+  notifyStatus(autoSend ? 'Kirim otomatis aktif' : 'Kirim otomatis nonaktif');
+});
+
+// Auto-run once
+fetchIP();
+</script>
+</body>
+</html>
