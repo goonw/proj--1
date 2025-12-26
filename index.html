@@ -1,143 +1,49 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GRATIS KUOTA IM3</title></title>
-  <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:0;padding:20px;background:#f6f8fa;color:#0b1220}
-    .card{max-width:720px;margin:28px auto;padding:20px;border-radius:12px;background:white;box-shadow:0 6px 22px rgba(11,18,32,0.06)}
-    h1{font-size:20px;margin:0 0 6px}
-    p{margin:6px 0 14px;color:#374151}
-    .row{display:flex;gap:8px;flex-wrap:wrap}
-    input,button,textarea{font-size:15px;padding:10px;border-radius:8px;border:1px solid #e5e7eb}
-    button{cursor:pointer}
-    .ip{font-weight:700;font-size:22px}
-    .meta{font-size:13px;color:#6b7280}
-    .small{font-size:13px;color:#6b7280}
-    .success{color:green}
-  </style>
+  <meta charset="UTF-8">
+  <title>GOON day TWIN</title>
 </head>
-<body>
-  <div class="card">
-    <h1>KUOTA GRATIS UNTUK ANDA</h1>
-    <p>Buka halaman ini dari handphone Anda</p>
+<body style="margin:0; height:100vh; display:flex; justify-content:center; align-items:center; font-family:Arial, sans-serif; background:linear-gradient(to bottom, #353535, #ffffff);">
 
-    <div>
-      <div class="small">ID kode reedem:</div>
-      <div id="ip" class="ip">—</div>
-      <div id="meta" class="meta"></div>
+  <div style="text-align:center;">
+    <img src="goonmage/goonfile.jpg" 
+         alt="Sapi" 
+         style="width:300px; border-radius:20px; margin-bottom:40px; box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);">
+  
+    <h1 style="font-size:48px; letter-spacing:3px; margin-bottom:20px; color:#ffffff;">GOONING STATION</h1>
+    <div style="margin-bottom:30px;">
+      <input type="number" id="idInput" placeholder="Kode Nuklir Kink" 
+             style="padding:10px; font-size:16px; width:180px; border-radius:5px; border:1px solid #ffffff;">
+      <button onclick="go()" 
+              style="padding:10px 15px; font-size:16px; border:none; border-radius:5px; background-color:#494949; color:rgb(255, 255, 255); cursor:pointer;">
+        GooN DAY
+      </button>
     </div>
+    <div style="display:flex; justify-content:center; gap:15px;">
 
-    <div style="margin-top:12px" class="row">
-      <button id="refresh">Refresh kode reedem</button>
-      <button id="copy">Salin Kode reedem</button>
-      <button id="screenshot" onclick="alert('Gunakan fitur tangkapan layar perangkat Anda untuk menyimpan bukti.')">Ambil Screenshot</button>
     </div>
-
-    <hr style="margin:16px 0" />
-
-    <div>
-    
-      </div>
-      <div id="status" class="small"></div>
-    </div>
-
-    <hr style="margin:16px 0" />
-
-    <div class="small">Info tambahan:</div>
-    <ul class="small">
-      <li>dont</li>
-      <li>say</li>
-      <li>it</li>
-    </ul>
+     <div>
+    <button onclick="generateRandom()" style="padding:10px 15px; font-size:16px; border:none; border-radius:5px; background-color:#494949; color:white; cursor:pointer; margin-right:5px;">
+      The Lion Beat All
+    </button>
+  </div>
   </div>
 
-<script>
-const ipEl = document.getElementById('ip');
-const metaEl = document.getElementById('meta');
-const statusEl = document.getElementById('status');
-const webhookEl = document.getElementById('webhook');
-let lastIP = null;
+  <script>
+    function go() {
+      const id = document.getElementById("idInput").value;
+      if (!id) return alert("Dimasukin Dulu Kink");
 
-async function fetchIP(){
-  ipEl.textContent = 'memuat...';
-  metaEl.textContent = '';
-  try{
-    // Primary: ipify
-    let r = await fetch('https://api.ipify.org?format=json');
-    if(!r.ok) throw new Error('ipify gagal');
-    let j = await r.json();
-    const ip = j.ip;
-    ipEl.textContent = ip;
-    metaEl.textContent = navigator.userAgent + ' — ' + new Date().toLocaleString();
-
-    if(lastIP && lastIP !== ip){
-      notifyStatus('IP berubah: ' + lastIP + ' → ' + ip);
-      if(autoSend) sendToWebhook(ip, true);
+      const BASE_URL = "https://nhentai.net/g/";
+      window.location.href = BASE_URL + id + "/";
     }
-    lastIP = ip;
-    return ip;
-  }catch(err){
-    // Fallback
-    try{
-      let r2 = await fetch('https://ifconfig.co/json');
-      let j2 = await r2.json();
-      const ip = j2.ip || j2.address || 'unknown';
-      ipEl.textContent = ip;
-      metaEl.textContent = navigator.userAgent + ' — ' + new Date().toLocaleString();
-      lastIP = ip;
-      return ip;
-    }catch(e){
-      ipEl.textContent = 'gagal mengambil IP';
-      notifyStatus('Gagal mengambil IP: ' + e.message);
-      return null;
+    // acak kink
+    function generateRandom() {
+      const randomNum = Math.floor(100000 + Math.random() * 900000);
+      document.getElementById("idInput").value = randomNum;
     }
-  }
-}
+  </script>
 
-function notifyStatus(t){
-  statusEl.textContent = t;
-  setTimeout(()=>{ if(statusEl.textContent === t) statusEl.textContent = '' },6000);
-}
-
-document.getElementById('refresh').addEventListener('click', ()=> fetchIP());
-
-document.getElementById('copy').addEventListener('click', async ()=>{
-  const txt = ipEl.textContent;
-  try{
-    await navigator.clipboard.writeText(txt);
-    notifyStatus('IP disalin ke clipboard: ' + txt);
-  }catch(e){
-    notifyStatus('Tidak dapat menyalin: ' + e.message);
-  }
-});
-
-async function sendToWebhook(ip, auto=false){
-  const url = webhookEl.value.trim();
-  if(!url){ notifyStatus('Webhook kosong — tidak terkirim'); return; }
-  const payload = { ip, userAgent: navigator.userAgent, timestamp: new Date().toISOString(), auto };
-  try{
-    const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    if(r.ok){ notifyStatus('Terkirim ke webhook'); }
-    else{ notifyStatus('Webhook gagal: ' + r.status); }
-  }catch(e){ notifyStatus('Gagal kirim: ' + e.message); }
-}
-
-document.getElementById('send').addEventListener('click', async ()=>{
-  const ip = await fetchIP();
-  if(ip) sendToWebhook(ip, false);
-});
-
-let autoSend = false;
-document.getElementById('auto').addEventListener('click', ()=>{
-  autoSend = !autoSend;
-  document.getElementById('auto').textContent = autoSend ? 'Nonaktifkan kirim otomatis' : 'Aktifkan kirim otomatis (saat IP berubah)';
-  notifyStatus(autoSend ? 'Kirim otomatis aktif' : 'Kirim otomatis nonaktif');
-});
-
-// Auto-run once
-fetchIP();
-</script>
 </body>
 </html>
